@@ -126,6 +126,7 @@ func ProcessPayment(provider string) (PaymentComponents, error) {
 	var refund Refund
 	var webhook Webhook
 	var components PaymentComponents
+
 	if provider == "razorpay" {
 
 		payment = &RazorpayPayment{}
@@ -213,3 +214,56 @@ func main() {
 
 	// ProcessPayment1(payUFactory)
 }
+
+// Abstract Class / Abstract Method=>interfaces aur composition
+
+// Factory Design Pattern
+// Meaning: Object creation ki responsibility ek separate function (Factory) ko de dena.
+//e.g = UPI,CARD,CASH,  interface  bnao py name se  fir usko  ek function bano    processPayment ( responsible  for creation of object)  swith constion ke based pe  rerurn kro  object
+
+// //Builder Pattern
+
+// type User struct {
+//     Name  string
+//     Email string
+//     Age   int
+//     City  string
+// }
+
+// type UserBuilder struct {
+//     user User
+// }
+
+// func NewUserBuilder() *UserBuilder {
+//     return &UserBuilder{}
+// }
+
+// func (b *UserBuilder) SetName(name string) *UserBuilder {
+//     b.user.Name = name
+//     return b
+// }
+
+// func (b *UserBuilder) SetEmail(email string) *UserBuilder {
+//     b.user.Email = email
+//     return b
+// }
+
+// func (b *UserBuilder) SetAge(age int) *UserBuilder {
+//     b.user.Age = age
+//     return b
+// }
+
+// func (b *UserBuilder) SetCity(city string) *UserBuilder {
+//     b.user.City = city
+//     return b
+// }
+
+// func (b *UserBuilder) Build() User {
+//     return b.user
+// }
+
+// user := NewUserBuilder().
+//     SetName("Rahul").
+//     SetEmail("rahul@gmail.com").
+//     SetAge(25).
+//     Build()

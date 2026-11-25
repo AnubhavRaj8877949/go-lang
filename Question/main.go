@@ -25,6 +25,7 @@ func printEven(wg *sync.WaitGroup, oddch, evench chan bool) {
 		}
 	}
 }
+
 func main() {
 	var wg sync.WaitGroup
 	wg.Add(2)

@@ -1,0 +1,221 @@
+classDiagram
+    direction TB
+
+    %% ==========================================
+    %% 1. FACADE PATTERN (Structural - Entry Point)
+    %% ==========================================
+    namespace Facade_Pattern_Unified_Interface {
+        class TomatoApp {
+            <<Facade>>
+            -RestaurantManager restaurantManager
+            -UserManager userManager
+            -OrderManager orderManager
+            -NotificationService notificationService
+            +SearchRestaurants(loc string) List~Restaurant~
+            +AddToCart(userId int, item MenuItem)
+            +Checkout(userId int, factory OrderFactory, orderType string, payment PaymentStrategy) Order
+        }
+    }
+
+    %% ==========================================
+    %% 2. SINGLETON PATTERN (Creational - sync.Once)
+    %% ==========================================
+    namespace Singleton_Pattern_Shared_Instances_sync_Once {
+        class RestaurantManager {
+            <<Singleton>>
+            -List~Restaurant~ restaurants
+            +GetRestaurantManager() RestaurantManager
+            +AddRestaurant(r Restaurant)
+            +RemoveRestaurant(id int)
+            +SearchByLocation(loc string) List~Restaurant~
+        }
+        class UserManager {
+            <<Singleton>>
+            -List~User~ users
+            +GetUserManager() UserManager
+            +AddUser(u User)
+            +GetUser(id int) User
+        }
+        class OrderManager {
+            <<Singleton>>
+            -List~Order~ orders
+            +GetOrderManager() OrderManager
+            +AddOrder(order Order)
+            +GetAllOrders() List~Order~
+        }
+        class NotificationService {
+            <<Singleton>>
+            -NotificationStrategy strategy
+            +GetNotificationService() NotificationService
+            +SetStrategy(s NotificationStrategy)
+            +Notify(user User, msg string)
+        }
+    }
+
+    %% ==========================================
+    %% 3. STRATEGY PATTERN (Behavioral - Payment & Notification)
+    %% ==========================================
+    namespace Strategy_Pattern_Swappable_Behaviors {
+        class PaymentStrategy {
+            <<Interface>>
+            +Pay(amount double) bool
+        }
+        class UPIPayment {
+            +Pay(amount double) bool
+        }
+        class GooglePayPayment {
+            +Pay(amount double) bool
+        }
+        class CreditCardPayment {
+            +Pay(amount double) bool
+        }
+        class CashPayment {
+            +Pay(amount double) bool
+        }
+
+        class NotificationStrategy {
+            <<Interface>>
+            +Send(recipient string, msg string)
+        }
+        class EmailNotification {
+            +Send(recipient string, msg string)
+        }
+        class SMSNotification {
+            +Send(recipient string, msg string)
+        }
+        class PopupNotification {
+            +Send(recipient string, msg string)
+        }
+    }
+
+    %% ==========================================
+    %% 4. FACTORY PATTERN (Creational - Order Creation)
+    %% ==========================================
+    namespace Factory_Pattern_Order_Creation {
+        class OrderFactory {
+            <<Interface>>
+            +CreateOrder(type string) Order
+        }
+        class NowOrderFactory {
+            +CreateOrder(type string) Order
+        }
+        class ScheduleOrderFactory {
+            +CreateOrder(type string) Order
+        }
+    }
+
+    %% ==========================================
+    %% 5. TEMPLATE & INHERITANCE (Order Hierarchy)
+    %% ==========================================
+    namespace Template_And_Inheritance_Orders {
+        class Order {
+            <<Abstract Class>>
+            #int id
+            #Restaurant restaurant
+            #List~MenuItem~ items
+            #User user
+            #PaymentStrategy paymentStrategy
+            +GetType()* string
+            +ProcessPayment()
+        }
+        class DeliveryOrder {
+            -string deliveryAddress
+            +GetType() string
+        }
+        class PickupOrder {
+            -string pickupTime
+            +GetType() string
+        }
+    }
+
+    %% ==========================================
+    %% 6. DOMAIN MODELS / ENTITIES (Core Data)
+    %% ==========================================
+    namespace Domain_Models_Core_Entities {
+        class Restaurant {
+            <<Model>>
+            -int id
+            -string name
+            -string address
+            -List~MenuItem~ menu
+            +AddMenuItem(item MenuItem)
+            +RemoveMenuItem(code int)
+            +UpdateMenuItem(item MenuItem)
+        }
+        class MenuItem {
+            <<Model>>
+            -int code
+            -string name
+            -double price
+        }
+        class User {
+            <<Model>>
+            -int id
+            -string name
+            -string address
+            -Cart cart
+        }
+        class Cart {
+            -Restaurant restaurant
+            -List~MenuItem~ items
+            -double total
+            +AddToCart(item MenuItem)
+            +Clear()
+            +IsEmpty() bool
+        }
+    }
+
+    %% ==========================================
+    %% REVISION STICKY NOTES
+    %% ==========================================
+    note for TomatoApp "FACADE (Tomato.go): Client (main.go) ko complex subsystems se bachata hai. Search, Cart, Checkout, Payment aur Notification sab ek simple API se coordinate karta hai."
+    note for RestaurantManager "SINGLETON (sync.Once): RestaurantManager, UserManager, OrderManager aur NotificationService ka poore app mein sirf 1 thread-safe instance banta hai."
+    note for PaymentStrategy "STRATEGY (Strategies.go): Payment (UPI, GPay, Card, Cash) aur Notification (Email, SMS, Popup) dono runtime par bina core code badle switch ho sakte hain."
+    note for OrderFactory "FACTORY (factories/): NowOrderFactory aur ScheduleOrderFactory decide karte hain ki DeliveryOrder banega ya PickupOrder."
+    note for Order "TEMPLATE / INHERITANCE: ProcessPayment() common logic hai, par GetType() har subclass apna implement karti hai."
+    note for User "DOMAIN MODELS: Real-world entities (User, Cart, Restaurant, MenuItem) jo system ki state hold karti hain."
+
+    %% ==========================================
+    %% RELATIONSHIPS
+    %% ==========================================
+    %% Facade coordinates all subsystems
+    TomatoApp --> RestaurantManager : coordinates
+    TomatoApp --> UserManager : coordinates
+    TomatoApp --> OrderManager : coordinates
+    TomatoApp --> NotificationService : coordinates
+    TomatoApp ..> OrderFactory : uses
+
+    %% Singleton management
+    RestaurantManager o-- "1..*" Restaurant : manages
+    UserManager o-- "1..*" User : manages
+    OrderManager o-- "1..*" Order : tracks
+    NotificationService --> "1" NotificationStrategy : uses
+
+    %% Domain relationships
+    Restaurant *-- "1..*" MenuItem : contains
+    User *-- "1" Cart : owns
+    Cart o-- "1..*" MenuItem : has
+    Cart --> "1" Restaurant : from
+    User --> "1..*" Order : places
+    Order --> "1" PaymentStrategy : uses
+
+    %% Inheritance & Implementations
+    Order <|-- DeliveryOrder
+    Order <|-- PickupOrder
+
+    PaymentStrategy <|.. UPIPayment
+    PaymentStrategy <|.. GooglePayPayment
+    PaymentStrategy <|.. CreditCardPayment
+    PaymentStrategy <|.. CashPayment
+
+    NotificationStrategy <|.. EmailNotification
+    NotificationStrategy <|.. SMSNotification
+    NotificationStrategy <|.. PopupNotification
+
+    OrderFactory <|.. NowOrderFactory
+    OrderFactory <|.. ScheduleOrderFactory
+
+    NowOrderFactory ..> DeliveryOrder : creates
+    NowOrderFactory ..> PickupOrder : creates
+    ScheduleOrderFactory ..> DeliveryOrder : creates
+    ScheduleOrderFactory ..> PickupOrder : creates
